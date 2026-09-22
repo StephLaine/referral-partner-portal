@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Refer a Client — Insurance Team Partner Portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #16233D;
+    --ink-soft: #4A5568;
+    --paper: #F7F7F4;
+    --panel-border: #DDD9CF;
+    --gold: #C9932E;
+    --gold-deep: #A87724;
+    --brick: #A8402F;
+    --brick-bg: #FBEEEC;
+    --forest: #3F7857;
+    --forest-bg: #EBF3EE;
+    --slate-bg: #EEF0F3;
+    --radius: 3px;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Inter', -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .letterhead {
+    background: var(--ink);
+    color: #F2EFE6;
+    padding: 2.75rem 1.5rem 2.25rem;
+    text-align: left;
+  }
+  .letterhead-inner { max-width: 520px; margin: 0 auto; }
+  .eyebrow {
+    font-size: 0.8125rem;
+    color: #B9C3D6;
+    letter-spacing: 0.02em;
+    margin: 0 0 0.6rem;
+  }
+  h1 {
+    font-family: 'Source Serif 4', Georgia, serif;
+    font-weight: 600;
+    font-size: 1.85rem;
+    line-height: 1.25;
+    margin: 0 0 0.65rem;
+    max-width: 22ch;
+  }
+  .letterhead p.sub {
+    color: #C7CFDD;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin: 0;
+    max-width: 38ch;
+  }
+  main { max-width: 520px; margin: 0 auto; padding: 1.75rem 1.5rem 3rem; }
+  .card {
+    border: 1px solid var(--panel-border);
+    border-radius: var(--radius);
+    background: #fff;
+    padding: 1.5rem;
+  }
+  .field { margin-bottom: 1.25rem; }
+  .field:last-of-type { margin-bottom: 0; }
+  label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--ink);
+    margin-bottom: 0.4rem;
+  }
+  input, select {
+    width: 100%;
+    font-family: inherit;
+    font-size: 1rem;
+    padding: 0.7rem 0.75rem;
+    border: 1px solid #C9C4B8;
+    border-radius: var(--radius);
+    background: #fff;
+    color: var(--ink);
+    min-height: 46px;
+  }
+  input:focus, select:focus, button:focus-visible {
+    outline: 2px solid var(--gold);
+    outline-offset: 1px;
+    border-color: var(--gold);
+  }
+  .field-error {
+    color: var(--brick);
+    font-size: 0.8125rem;
+    margin-top: 0.35rem;
+  }
+  input[aria-invalid="true"], select[aria-invalid="true"] {
+    border-color: var(--brick);
+  }
+  .other-intent { margin-top: 0.6rem; }
+  button.submit {
+    width: 100%;
+    margin-top: 1.5rem;
+    background: var(--gold);
+    color: #1C1206;
+    border: none;
+    font-family: inherit;
+    font-size: 1rem;
+    font-weight: 600;
+    padding: 0.9rem 1rem;
+    min-height: 50px;
+    border-radius: var(--radius);
+    cursor: pointer;
+  }
+  button.submit:hover { background: var(--gold-deep); }
+  button.submit:disabled { opacity: 0.6; cursor: default; }
+  button.secondary {
+    width: 100%;
+    margin-top: 0.9rem;
+    background: transparent;
+    color: var(--ink);
+    border: 1px solid var(--panel-border);
+    font-family: inherit;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    padding: 0.7rem 1rem;
+    min-height: 44px;
+    border-radius: var(--radius);
+    cursor: pointer;
+  }
+  .status-panel { border-radius: var(--radius); padding: 1.5rem; }
+  .status-panel.success { background: var(--forest-bg); border: 1px solid #C6DECD; }
+  .status-panel.error { background: var(--brick-bg); border: 1px solid #EFCFC9; }
+  .status-icon {
+    width: 40px; height: 40px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 0.9rem; font-size: 1.1rem;
+  }
+  .status-panel.success .status-icon { background: var(--forest); color: #fff; }
+  .status-panel.error .status-icon { background: var(--brick); color: #fff; }
+  .status-panel h2 {
+    font-family: 'Source Serif 4', Georgia, serif;
+    font-size: 1.3rem;
+    margin: 0 0 0.4rem;
+  }
+  .status-panel p { margin: 0 0 0.25rem; color: var(--ink-soft); font-size: 0.9375rem; line-height: 1.5; }
+  .tier-badge {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.25rem 0.6rem;
+    border-radius: 2px;
+    margin-top: 0.75rem;
+  }
+  .tier-immediate { background: #F3E3C4; color: var(--gold-deep); }
+  .tier-standard { background: var(--slate-bg); color: var(--ink-soft); }
+  .tier-nurture { background: var(--slate-bg); color: var(--ink-soft); }
+  .tech-detail {
+    margin-top: 0.9rem;
+    font-size: 0.75rem;
+    color: var(--ink-soft);
+    font-family: ui-monospace, monospace;
+    word-break: break-word;
+  }
+  .sending {
+    display: flex; align-items: center; gap: 0.6rem;
+    color: var(--ink-soft); font-size: 0.9375rem; margin-top: 1rem;
+  }
+  .dot {
+    width: 8px; height: 8px; border-radius: 50%; background: var(--gold);
+    animation: pulse 1.1s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100% { opacity: 0.3; } 50% { opacity: 1; } }
+  .fade-in { animation: fadeIn 0.5s ease both; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+  @media (prefers-reduced-motion: reduce) {
+    .fade-in, .dot { animation: none; }
+  }
+</style>
+</head>
+<body>
+
+<header class="letterhead">
+  <div class="letterhead-inner fade-in">
+    <p class="eyebrow">Partner referral portal</p>
+    <h1>Send us a client and we'll take it from there.</h1>
+    <p class="sub">Fill in a few details below. Your referral goes straight to our team — you'll see confirmation before you leave this page.</p>
+  </div>
+</header>
+
+<main>
+  <div id="form-card" class="card">
+    <form id="referral-form" novalidate>
+      <div class="field">
+        <label for="partner_code">Your partner code</label>
+        <input type="text" id="partner_code" name="partner_code" autocomplete="off" required>
+        <div class="field-error" id="err-partner_code" hidden></div>
+      </div>
+
+      <div class="field">
+        <label for="prospect_name">Client's full name</label>
+        <input type="text" id="prospect_name" name="prospect_name" autocomplete="off" required>
+        <div class="field-error" id="err-prospect_name" hidden></div>
+      </div>
+
+      <div class="field">
+        <label for="prospect_email">Client's email</label>
+        <input type="email" id="prospect_email" name="prospect_email" autocomplete="off" required>
+        <div class="field-error" id="err-prospect_email" hidden></div>
+      </div>
+
+      <div class="field">
+        <label for="prospect_phone">Client's phone</label>
+        <input type="tel" id="prospect_phone" name="prospect_phone" autocomplete="off" required>
+        <div class="field-error" id="err-prospect_phone" hidden></div>
+      </div>
+
+      <div class="field">
+        <label for="intent">What are they looking for?</label>
+        <select id="intent" name="intent" required>
+          <option value="" disabled selected>Choose one</option>
+          <option value="Auto insurance quote">Auto insurance quote</option>
+          <option value="Home insurance quote">Home insurance quote</option>
+          <option value="Life insurance quote">Life insurance quote</option>
+          <option value="other">Other</option>
+        </select>
+        <div class="other-intent" id="other-intent-wrap" hidden>
+          <input type="text" id="intent_other" placeholder="Describe what they need">
+        </div>
+        <div class="field-error" id="err-intent" hidden></div>
+      </div>
+
+      <button type="submit" class="submit" id="submit-btn">Send referral</button>
+      <div class="sending" id="sending-indicator" hidden aria-live="polite">
+        <span class="dot"></span> Sending referral…
+      </div>
+    </form>
+  </div>
+
+  <div id="result-area" role="status" aria-live="polite"></div>
+</main>
+
+<script>
+  // ── CONFIGURE THIS ──────────────────────────────────────────────
+  // Use your n8n PRODUCTION webhook URL (workflow must be Activated),
+  // not the /webhook-test/ URL, which only fires once per "Listen" click.
+  const WEBHOOK_URL = "https://stef667.app.n8n.cloud/webhook/referral";
+  // ─────────────────────────────────────────────────────────────────
+
+  const form = document.getElementById('referral-form');
+  const formCard = document.getElementById('form-card');
+  const resultArea = document.getElementById('result-area');
+  const submitBtn = document.getElementById('submit-btn');
+  const sendingIndicator = document.getElementById('sending-indicator');
+  const intentSelect = document.getElementById('intent');
+  const otherWrap = document.getElementById('other-intent-wrap');
+  const otherInput = document.getElementById('intent_other');
+
+  intentSelect.addEventListener('change', () => {
+    otherWrap.hidden = intentSelect.value !== 'other';
+  });
+
+  function clearErrors() {
+    document.querySelectorAll('.field-error').forEach(el => { el.hidden = true; el.textContent = ''; });
+    document.querySelectorAll('[aria-invalid]').forEach(el => el.removeAttribute('aria-invalid'));
+  }
+
+  function showFieldError(fieldId, message) {
+    const input = document.getElementById(fieldId);
+    const err = document.getElementById('err-' + fieldId);
+    input.setAttribute('aria-invalid', 'true');
+    err.textContent = message;
+    err.hidden = false;
+  }
+
+  function validate(data) {
+    let valid = true;
+    if (!data.partner_code.trim()) { showFieldError('partner_code', 'Enter your partner code.'); valid = false; }
+    if (!data.prospect_name.trim()) { showFieldError('prospect_name', "Enter your client's name."); valid = false; }
+    if (!data.prospect_email.trim()) {
+      showFieldError('prospect_email', 'Enter an email address.'); valid = false;
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.prospect_email.trim())) {
+      showFieldError('prospect_email', "That email doesn't look right."); valid = false;
+    }
+    if (!data.prospect_phone.trim()) { showFieldError('prospect_phone', "Enter your client's phone number."); valid = false; }
+    if (!data.intent.trim()) { showFieldError('intent', 'Choose what they need, or describe it.'); valid = false; }
+    return valid;
+  }
+
+  function tierLabel(tier) {
+    if (tier === 'immediate') return { text: 'Priority follow-up', cls: 'tier-immediate' };
+    if (tier === 'nurture') return { text: 'Added to nurture list', cls: 'tier-nurture' };
+    return { text: 'Standard follow-up', cls: 'tier-standard' };
+  }
+
+  function renderSuccess(payload) {
+    formCard.hidden = true;
+    const tier = tierLabel(payload.routing_tier);
+    resultArea.innerHTML = `
+      <div class="status-panel success fade-in">
+        <div class="status-icon">✓</div>
+        <h2>Referral sent</h2>
+        <p>We've received the referral for <strong>${escapeHtml(payload.prospect || '')}</strong>. Our team will follow up directly.</p>
+        <span class="tier-badge ${tier.cls}">${tier.text}</span>
+      </div>
+      <button class="secondary" id="reset-btn">Send another referral</button>
+    `;
+    document.getElementById('reset-btn').addEventListener('click', resetForm);
+  }
+
+  function renderError(kind, detail) {
+    let heading, body;
+    if (kind === 'network') {
+      heading = "We couldn't reach the server";
+      body = "Check your connection and try again. If this keeps happening, contact us directly so the referral isn't lost.";
+    } else {
+      heading = "Something went wrong sending this";
+      body = "The referral didn't go through on our end. Nothing was lost from this form — try again in a moment.";
+    }
+    resultArea.innerHTML = `
+      <div class="status-panel error fade-in">
+        <div class="status-icon">!</div>
+        <h2>${heading}</h2>
+        <p>${body}</p>
+        ${detail ? `<p class="tech-detail">${escapeHtml(detail)}</p>` : ''}
+      </div>
+      <button class="secondary" id="retry-btn">Try again</button>
+    `;
+    document.getElementById('retry-btn').addEventListener('click', () => {
+      resultArea.innerHTML = '';
+      formCard.hidden = false;
+    });
+  }
+
+  function resetForm() {
+    form.reset();
+    otherWrap.hidden = true;
+    clearErrors();
+    resultArea.innerHTML = '';
+    formCard.hidden = false;
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    clearErrors();
+
+    const data = {
+      partner_code: document.getElementById('partner_code').value,
+      prospect_name: document.getElementById('prospect_name').value,
+      prospect_email: document.getElementById('prospect_email').value,
+      prospect_phone: document.getElementById('prospect_phone').value,
+      intent: intentSelect.value === 'other' ? otherInput.value : intentSelect.value
+    };
+
+    if (!validate(data)) return;
+
+    submitBtn.disabled = true;
+    sendingIndicator.hidden = false;
+
+    try {
+      const res = await fetch(WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+
+      let payload;
+      try {
+        payload = await res.json();
+      } catch (parseErr) {
+        renderError('server', 'Server returned a response that could not be read as JSON.');
+        return;
+      }
+
+      if (!res.ok || payload.success !== true) {
+        renderError('server', payload.message || `Server responded with status ${res.status}.`);
+        return;
+      }
+
+      renderSuccess(payload);
+    } catch (networkErr) {
+      renderError('network', networkErr.message);
+    } finally {
+      submitBtn.disabled = false;
+      sendingIndicator.hidden = true;
+    }
+  });
+</script>
+
+</body>
+</html>
