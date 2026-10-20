@@ -1,65 +1,100 @@
-# Referral Partner Portal (Production Prototype)
+# Referral Partner Portal
 
-A single-page app for insurance referral partners to submit a client referral
-that flows straight into the n8n multi-agent workflow from Modules 1–3.
+**Live:** https://referral-partner-portal-smoky.vercel.app
 
-## How to run locally
-No build step, no dependencies. Just open `index.html` in a browser, or serve
-it with any static server, e.g.:
+A one-page form where insurance referral partners send a client to the sales team. Behind it, an n8n workflow with four AI agents ranks the referral, files it in HubSpot, alerts sales in Slack and emails both the partner and the client. The partner sees a confirmation with a follow-up tier in seconds.
+
+> One form. Four AI agents. Every referral answered. None lost, even when the AI fails.
+
+## The problem
+
+Insurance agencies get much of their best business from referral partners such as other agents, brokers, realtors and accountants. Those referrals arrive however the partner likes: a text, an email, a phone call. Three things go wrong:
+
+1. **The partner never hears back.** After a few clients disappear into silence, they stop referring.
+2. **Sales can't tell who to call first.** A client ready to buy this month waits in line behind one who is just curious.
+3. **Details get lost between tools.** Each referral is retyped from inbox to spreadsheet to CRM to team chat, and every retype can drop a phone number.
+
+## What it does
+
+- **For the partner:** one short form, plain-language errors and a confirmation before they leave the page. The confirmation shows whether the client is a priority, a standard follow-up or a nurture lead.
+- **For sales:** a Slack message with the lead already scored hot, warm or cold. It names the product to pitch and gives a one-sentence reason.
+- **For the client:** a welcome email that mentions the partner who referred them.
+- **For the business:** every referral is logged to a Google Sheet and upserted into HubSpot. If the AI or HubSpot fails, the referral still goes through and the failure is logged.
+
+| The partner sends | Sales sees it ranked |
+|---|---|
+| <img src="demo/screenshots/4-success-priority.png" width="260" alt="Phone screen: Referral sent, Priority follow-up"> | <img src="demo/screenshots/8-sales-feed.png" width="560" alt="Sales channel with three leads: Priority, Standard and Nurture"> |
+
+More states: [the form](demo/screenshots/1-form.png), [validation errors](demo/screenshots/2-validation.png), [sending](demo/screenshots/3-sending.png), [nurture tier](demo/screenshots/5-success-nurture.png), [unknown partner code](demo/screenshots/6-unknown-partner.png) and [server error](demo/screenshots/7-server-error.png).
+
+## Architecture
+
+```mermaid
+flowchart LR
+  P[Portal<br>index.html + app.js] -->|POST JSON| W[n8n webhook]
+  W --> V{Required fields?}
+  V -->|no| R1[Missing required field]
+  V -->|yes| F[Find partner<br>Google Sheets]
+  F --> K{Known partner?}
+  K -->|no| R2[Unknown partner code]
+  K -->|yes| S[Save lead<br>Google Sheets]
+  S --> A1[Lead Qualification<br>agent + validator]
+  S --> A2[CRM Enrichment<br>agent + validator]
+  S --> A3[Partner Communication<br>agent + validator]
+  A1 --> M[Merge]
+  A2 --> M
+  A3 --> M
+  M --> D[Referral Decision<br>agent + validator]
+  D --> H[HubSpot upsert]
+  H -->|fails| E[Log to CRM_Sync_Errors]
+  H --> SL[Slack referral-leads channel]
+  E --> SL
+  SL --> G1[Email partner] --> G2[Email client] --> OK[success + routing_tier]
 ```
-npx serve .
+
+Every AI agent is followed by a validator. It strips stray formatting, parses the JSON, checks the required key and, if anything fails, substitutes a safe default so the run continues. The default routes the lead to the standard tier and asks sales to review it by hand. [HANDOFF.md](HANDOFF.md) goes node by node.
+
+## How to run it
+
+**Try it with no accounts.** You need Node.js 20 or newer, and there is nothing to install.
+
+```bash
+npm run demo
 ```
-Then visit the printed localhost URL.
 
-## Configuration
-Open `index.html` and find this line near the top of the `<script>` block:
-```js
-const WEBHOOK_URL = "https://stef667.app.n8n.cloud/webhook/referral";
+Open `http://localhost:8787` for the portal and `http://localhost:8787/feed` for a stand-in for the sales Slack channel. Use partner code `PARTNER001`. The demo server answers exactly like the real workflow, but its agents are **simulated with keyword rules, not Claude**. Press `a` in its terminal to simulate an AI outage, `h` for a HubSpot outage, or `x` to crash the next run.
+
+**Run the tests.**
+
+```bash
+npm test
 ```
-This must be your n8n **Production** webhook URL, not the `/webhook-test/`
-one — production URLs work continuously once the workflow is Activated
-(toggle in the top-right of the n8n editor); test URLs only fire once per
-"Listen for Test Event" click, which is why a real deployed app can't use one.
 
-**CORS:** your browser will block the request unless the n8n webhook node
-allows it. In the Webhook node's settings, set "Allowed Origins (CORS)" to
-`*` for testing, or to your deployed app's exact origin for production.
-Without this, submissions will fail with a network-style error in the app
-even though the workflow itself is fine.
+There are 41 tests, all dependency-free, in four layers:
 
-## What each flow does
-- **Referral form** — collects partner code, client name, email, phone, and
-  what they're looking for (a fixed set of common options, or a free-text
-  "Other"). Client-side validation runs before anything is sent — this is
-  the visible validation-error state.
-- **Submit** — POSTs the form as JSON to the n8n webhook. While in flight,
-  the submit button disables and a "Sending referral…" indicator shows.
-- **Success** — reads the workflow's response (`success`, `prospect`,
-  `routing_tier`) and shows a confirmation panel with a tier badge
-  (Priority / Standard / Nurture, from the Referral Decision Agent).
-- **Error handling** — two distinct failure paths are handled visibly:
-  - *Network failure*: `fetch` itself throws (offline, DNS failure, CORS
-    block) → "We couldn't reach the server" panel with a Try Again button
-    that returns to the form with nothing lost.
-  - *Server/workflow failure*: the response comes back but isn't a success
-    (non-200 status, malformed JSON, or `success` not `true`) → "Something
-    went wrong sending this" panel, with the raw error detail shown in
-    monospace for debugging.
+- **Form logic.**
+- **Workflow file.** Each check guards a bug found by running the workflow on real n8n.
+- **Demo server contract.**
+- **Real-browser checks** in headless Chrome. They skip themselves when Chrome isn't installed.
+
+**Connect the real workflow.** Import [n8n/referral-partner-program.json](n8n/referral-partner-program.json) into n8n, connect the credentials and activate it. Then put its production webhook URL in [config.js](config.js). [HANDOFF.md](HANDOFF.md) has the full setup, including the Anthropic credential and the HubSpot properties.
+
+**Deploy.** Vercel deploys the `main` branch automatically. [.vercelignore](.vercelignore) keeps the published site to `index.html`, `app.js` and `config.js`.
 
 ## Known limitations
-- No authentication — anyone with the link can submit a referral. Acceptable
-  for a partner-facing intake form at this stage, but there's no
-  rate-limiting or spam protection yet.
-- The `partner_code` field isn't validated client-side against a real partner
-  list — an unknown code is only caught inside the n8n workflow, so the form
-  will show a generic server-error panel rather than a specific "unknown
-  partner code" message. A future version should have the workflow return a
-  distinct error payload for this case so the app can message it more
-  precisely.
-- No retry/backoff on network failure beyond the manual "Try Again" button.
-- No persistence — if the tab is closed after a network failure, the typed
-  data is lost. Acceptable for a first prototype; a future version could
-  save a draft to localStorage.
-- Tested against the n8n workflow's current field names and response shape
-  (`success`, `prospect`, `routing_tier`) — if those change in a future
-  module, this app's success/error rendering will need matching updates.
+
+- **The live form depends on the n8n instance.** If the instance is off, partners see "We couldn't reach the server" and nothing is saved. As of October 20, 2026 the n8n Cloud instance answers "No instance here".
+- **Anyone with the link can submit.** A hidden field stops simple bots, not a determined person. Rate limiting belongs in front of the webhook.
+- **Partner codes are only checked inside n8n.** The form can't tell a code is wrong until the workflow answers.
+- **n8n runs the three specialist agents one after another, not in parallel.** Response time has not been measured on the live system.
+- **HubSpot merges contacts by email.** Test referrals that reuse one address update one contact.
+- **The consent checkbox is sent but not stored.** The workflow ignores the `consent` field.
+- **The demo server's agents are rules.** They show the flow and the failure handling, not Claude's judgment.
+
+## Next steps
+
+1. **Restore the n8n instance** and measure real response time, so the promise to partners is a number.
+2. **Store consent.** Add the `consent` field and its timestamp to the Leads sheet and to HubSpot.
+3. **Build a partner status page.** It would list every client a partner has sent and where each one stands.
+4. **Rate-limit the webhook** and check partner codes before the AI runs, to keep costs predictable.
+5. **Speed up the agents.** Run the three specialist agents in parallel with n8n sub-workflows.

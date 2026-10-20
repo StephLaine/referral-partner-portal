@@ -23,6 +23,7 @@
     --radius: 3px;
   }
   * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
   html { scroll-padding-top: env(safe-area-inset-top, 0px); }
   body {
     margin: 0;
@@ -102,6 +103,7 @@
     border-color: var(--brick);
   }
   .other-intent { margin-top: 0.6rem; }
+  .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   button.submit {
     width: 100%;
     margin-top: 1.5rem;
@@ -158,9 +160,10 @@
   }
   .tier-immediate { background: #F3E3C4; color: var(--gold-deep); }
   .tier-standard { background: var(--slate-bg); color: var(--ink-soft); }
-  .tier-nurture { background: var(--slate-bg); color: var(--ink-soft); }
+  .tier-nurture { background: #E4EEF0; color: #2F5F66; }
   .tech-detail {
     margin-top: 0.9rem;
+    display: block;
     font-size: 0.75rem;
     color: var(--ink-soft);
     font-family: ui-monospace, monospace;
@@ -177,6 +180,22 @@
   @keyframes pulse { 0%,100% { opacity: 0.3; } 50% { opacity: 1; } }
   .fade-in { animation: fadeIn 0.5s ease both; }
   @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+  .hint { font-size: 0.8125rem; color: var(--ink-soft); margin: 0.3rem 0 0; }
+  .consent { display: flex; gap: 0.65rem; align-items: flex-start; margin-top: 1.4rem; }
+  .consent input { width: 1.15rem; height: 1.15rem; min-height: 0; margin: 0.15rem 0 0; flex: none; accent-color: var(--gold-deep); }
+  .consent label { margin: 0; font-weight: 400; line-height: 1.45; color: var(--ink-soft); }
+  .consent input[aria-invalid="true"] { outline: 2px solid var(--brick); outline-offset: 1px; }
+  .notice { background: var(--slate-bg); border-radius: var(--radius); padding: 0.75rem 0.9rem; font-size: 0.875rem; color: var(--ink-soft); margin-bottom: 1.25rem; display: flex; justify-content: space-between; gap: 0.75rem; align-items: center; }
+  .notice.warn { background: var(--brick-bg); color: var(--brick); }
+  .link-btn { background: none; border: none; padding: 0; font: inherit; color: var(--ink); text-decoration: underline; cursor: pointer; white-space: nowrap; }
+  .hp { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
+  .tier-note { margin-top: 0.5rem !important; }
+  .next-steps { margin: 1rem 0 0; padding-left: 1.1rem; color: var(--ink-soft); font-size: 0.9375rem; line-height: 1.6; }
+  .tech-detail summary { cursor: pointer; font-family: 'Inter', sans-serif; font-size: 0.8125rem; }
+  .tech-detail code { display: block; margin-top: 0.4rem; }
+  .status-panel h2:focus { outline: none; }
+  .site-footer { max-width: 520px; margin: 0 auto; padding: 0 1.5rem 2.5rem; font-size: 0.8125rem; color: var(--ink-soft); line-height: 1.5; }
+  @media (max-width: 420px) { .letterhead { padding: 2rem 1rem 1.75rem; } main { padding: 1.25rem 1rem 2.5rem; } .card { padding: 1.15rem; } .site-footer { padding: 0 1rem 2rem; } }
   @media (prefers-reduced-motion: reduce) {
     .fade-in, .dot { animation: none; }
   }
@@ -188,214 +207,89 @@
   <div class="letterhead-inner fade-in">
     <p class="eyebrow">Partner referral portal</p>
     <h1>Send us a client and we'll take it from there.</h1>
-    <p class="sub">Fill in a few details below. Your referral goes straight to our team — you'll see confirmation before you leave this page.</p>
+    <p class="sub">It takes about a minute. Your referral goes straight to our team, and you'll see a confirmation before you leave this page.</p>
   </div>
 </header>
 
 <main>
+  <div id="config-warning" class="notice warn" hidden role="alert">This portal isn't connected yet. Set webhookUrl in config.js.</div>
+
   <div id="form-card" class="card">
+    <div id="draft-note" class="notice" hidden>
+      <span>We restored the referral you started earlier.</span>
+      <button type="button" class="link-btn" id="discard-draft">Start over</button>
+    </div>
+
     <form id="referral-form" novalidate>
       <div class="field">
         <label for="partner_code">Your partner code</label>
-        <input type="text" id="partner_code" name="partner_code" autocomplete="off" required>
+        <input type="text" id="partner_code" name="partner_code" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="40" required aria-describedby="hint-partner_code err-partner_code">
+        <p class="hint" id="hint-partner_code">It's in your partner welcome email, for example PARTNER001. We'll remember it on this device.</p>
         <div class="field-error" id="err-partner_code" hidden></div>
       </div>
 
       <div class="field">
         <label for="prospect_name">Client's full name</label>
-        <input type="text" id="prospect_name" name="prospect_name" autocomplete="off" required>
+        <input type="text" id="prospect_name" name="prospect_name" autocomplete="off" maxlength="120" required aria-describedby="err-prospect_name">
         <div class="field-error" id="err-prospect_name" hidden></div>
       </div>
 
       <div class="field">
         <label for="prospect_email">Client's email</label>
-        <input type="email" id="prospect_email" name="prospect_email" autocomplete="off" required>
+        <input type="email" id="prospect_email" name="prospect_email" autocomplete="off" inputmode="email" maxlength="254" required aria-describedby="err-prospect_email">
         <div class="field-error" id="err-prospect_email" hidden></div>
       </div>
 
       <div class="field">
         <label for="prospect_phone">Client's phone</label>
-        <input type="tel" id="prospect_phone" name="prospect_phone" autocomplete="off" required>
+        <input type="tel" id="prospect_phone" name="prospect_phone" autocomplete="off" inputmode="tel" maxlength="40" required aria-describedby="err-prospect_phone">
         <div class="field-error" id="err-prospect_phone" hidden></div>
       </div>
 
       <div class="field">
         <label for="intent">What are they looking for?</label>
-        <select id="intent" name="intent" required>
+        <select id="intent" name="intent" required aria-describedby="err-intent">
           <option value="" disabled selected>Choose one</option>
           <option value="Auto insurance quote">Auto insurance quote</option>
           <option value="Home insurance quote">Home insurance quote</option>
           <option value="Life insurance quote">Life insurance quote</option>
-          <option value="other">Other</option>
+          <option value="other">Something else</option>
         </select>
-        <div class="other-intent" id="other-intent-wrap" hidden>
-          <input type="text" id="intent_other" placeholder="Describe what they need">
-        </div>
         <div class="field-error" id="err-intent" hidden></div>
+        <div class="other-intent" id="other-intent-wrap" hidden>
+          <label for="intent_other" class="visually-hidden">Describe what your client needs</label>
+          <input type="text" id="intent_other" placeholder="Describe what they need, and how soon" maxlength="300" aria-describedby="err-intent_other">
+          <div class="field-error" id="err-intent_other" hidden></div>
+        </div>
       </div>
+
+      <div class="hp" aria-hidden="true">
+        <label for="website">Leave this empty</label>
+        <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
+      </div>
+
+      <div class="consent">
+        <input type="checkbox" id="consent" name="consent" required aria-describedby="err-consent">
+        <label for="consent">My client agreed that our team can contact them about insurance.</label>
+      </div>
+      <div class="field-error" id="err-consent" hidden></div>
 
       <button type="submit" class="submit" id="submit-btn">Send referral</button>
       <div class="sending" id="sending-indicator" hidden aria-live="polite">
-        <span class="dot"></span> Sending referral…
+        <span class="dot" aria-hidden="true"></span> <span id="sending-text">Checking your partner code…</span>
       </div>
     </form>
   </div>
 
-  <div id="result-area" role="status" aria-live="polite"></div>
+  <div id="result-area" aria-live="polite"></div>
 </main>
 
-<script>
-  // ── CONFIGURE THIS ──────────────────────────────────────────────
-  // Use your n8n PRODUCTION webhook URL (workflow must be Activated),
-  // not the /webhook-test/ URL, which only fires once per "Listen" click.
-  const WEBHOOK_URL = "https://stef667.app.n8n.cloud/webhook/referral";
-  // ─────────────────────────────────────────────────────────────────
+<footer class="site-footer">
+  We only use your client's details to follow up on this referral. Questions? Reply to your partner welcome email.
+</footer>
 
-  const form = document.getElementById('referral-form');
-  const formCard = document.getElementById('form-card');
-  const resultArea = document.getElementById('result-area');
-  const submitBtn = document.getElementById('submit-btn');
-  const sendingIndicator = document.getElementById('sending-indicator');
-  const intentSelect = document.getElementById('intent');
-  const otherWrap = document.getElementById('other-intent-wrap');
-  const otherInput = document.getElementById('intent_other');
-
-  intentSelect.addEventListener('change', () => {
-    otherWrap.hidden = intentSelect.value !== 'other';
-  });
-
-  function clearErrors() {
-    document.querySelectorAll('.field-error').forEach(el => { el.hidden = true; el.textContent = ''; });
-    document.querySelectorAll('[aria-invalid]').forEach(el => el.removeAttribute('aria-invalid'));
-  }
-
-  function showFieldError(fieldId, message) {
-    const input = document.getElementById(fieldId);
-    const err = document.getElementById('err-' + fieldId);
-    input.setAttribute('aria-invalid', 'true');
-    err.textContent = message;
-    err.hidden = false;
-  }
-
-  function validate(data) {
-    let valid = true;
-    if (!data.partner_code.trim()) { showFieldError('partner_code', 'Enter your partner code.'); valid = false; }
-    if (!data.prospect_name.trim()) { showFieldError('prospect_name', "Enter your client's name."); valid = false; }
-    if (!data.prospect_email.trim()) {
-      showFieldError('prospect_email', 'Enter an email address.'); valid = false;
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.prospect_email.trim())) {
-      showFieldError('prospect_email', "That email doesn't look right."); valid = false;
-    }
-    if (!data.prospect_phone.trim()) { showFieldError('prospect_phone', "Enter your client's phone number."); valid = false; }
-    if (!data.intent.trim()) { showFieldError('intent', 'Choose what they need, or describe it.'); valid = false; }
-    return valid;
-  }
-
-  function tierLabel(tier) {
-    if (tier === 'immediate') return { text: 'Priority follow-up', cls: 'tier-immediate' };
-    if (tier === 'nurture') return { text: 'Added to nurture list', cls: 'tier-nurture' };
-    return { text: 'Standard follow-up', cls: 'tier-standard' };
-  }
-
-  function renderSuccess(payload) {
-    formCard.hidden = true;
-    const tier = tierLabel(payload.routing_tier);
-    resultArea.innerHTML = `
-      <div class="status-panel success fade-in">
-        <div class="status-icon">✓</div>
-        <h2>Referral sent</h2>
-        <p>We've received the referral for <strong>${escapeHtml(payload.prospect || '')}</strong>. Our team will follow up directly.</p>
-        <span class="tier-badge ${tier.cls}">${tier.text}</span>
-      </div>
-      <button class="secondary" id="reset-btn">Send another referral</button>
-    `;
-    document.getElementById('reset-btn').addEventListener('click', resetForm);
-  }
-
-  function renderError(kind, detail) {
-    let heading, body;
-    if (kind === 'network') {
-      heading = "We couldn't reach the server";
-      body = "Check your connection and try again. If this keeps happening, contact us directly so the referral isn't lost.";
-    } else {
-      heading = "Something went wrong sending this";
-      body = "The referral didn't go through on our end. Nothing was lost from this form — try again in a moment.";
-    }
-    resultArea.innerHTML = `
-      <div class="status-panel error fade-in">
-        <div class="status-icon">!</div>
-        <h2>${heading}</h2>
-        <p>${body}</p>
-        ${detail ? `<p class="tech-detail">${escapeHtml(detail)}</p>` : ''}
-      </div>
-      <button class="secondary" id="retry-btn">Try again</button>
-    `;
-    document.getElementById('retry-btn').addEventListener('click', () => {
-      resultArea.innerHTML = '';
-      formCard.hidden = false;
-    });
-  }
-
-  function resetForm() {
-    form.reset();
-    otherWrap.hidden = true;
-    clearErrors();
-    resultArea.innerHTML = '';
-    formCard.hidden = false;
-  }
-
-  function escapeHtml(str) {
-    const div = document.createElement('div');
-    div.textContent = str;
-    return div.innerHTML;
-  }
-
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    clearErrors();
-
-    const data = {
-      partner_code: document.getElementById('partner_code').value,
-      prospect_name: document.getElementById('prospect_name').value,
-      prospect_email: document.getElementById('prospect_email').value,
-      prospect_phone: document.getElementById('prospect_phone').value,
-      intent: intentSelect.value === 'other' ? otherInput.value : intentSelect.value
-    };
-
-    if (!validate(data)) return;
-
-    submitBtn.disabled = true;
-    sendingIndicator.hidden = false;
-
-    try {
-      const res = await fetch(WEBHOOK_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      });
-
-      let payload;
-      try {
-        payload = await res.json();
-      } catch (parseErr) {
-        renderError('server', 'Server returned a response that could not be read as JSON.');
-        return;
-      }
-
-      if (!res.ok || payload.success !== true) {
-        renderError('server', payload.message || `Server responded with status ${res.status}.`);
-        return;
-      }
-
-      renderSuccess(payload);
-    } catch (networkErr) {
-      renderError('network', networkErr.message);
-    } finally {
-      submitBtn.disabled = false;
-      sendingIndicator.hidden = true;
-    }
-  });
-</script>
+<script src="config.js"></script>
+<script src="app.js"></script>
 
 </body>
 </html>

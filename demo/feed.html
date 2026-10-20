@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sales Feed (Demo)</title>
+<style>
+  :root { --ink:#16233D; --soft:#4A5568; --paper:#F7F7F4; --line:#DDD9CF; --gold:#C9932E; --gold-deep:#A87724; --brick:#A8402F; --forest:#3F7857; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font: 15px/1.5 Inter, -apple-system, sans-serif; }
+  header { background: var(--ink); color: #F2EFE6; padding: 1rem 1.25rem; display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; }
+  header h1 { font: 600 1.1rem Georgia, serif; margin: 0; }
+  header small { color: #B9C3D6; }
+  .pills { display: flex; gap: .5rem; }
+  .pill { font-size: .75rem; padding: .2rem .55rem; border-radius: 999px; background: #2A3A5C; }
+  .pill.down { background: var(--brick); }
+  main { max-width: 760px; margin: 0 auto; padding: 1.25rem 1rem 3rem; }
+  .empty { color: var(--soft); text-align: center; padding: 3rem 1rem; }
+  .msg { background: #fff; border: 1px solid var(--line); border-left: 4px solid var(--line); border-radius: 3px; padding: 1rem 1.1rem; margin-bottom: .9rem; }
+  .msg.immediate { border-left-color: var(--gold); }
+  .msg.standard { border-left-color: #8A94A6; }
+  .msg.nurture { border-left-color: #2F5F66; }
+  .msg.new { animation: pop .6s ease; }
+  @keyframes pop { from { background: #FFF6E3; } to { background: #fff; } }
+  .top { display: flex; justify-content: space-between; gap: 1rem; align-items: baseline; flex-wrap: wrap; }
+  .who { font-weight: 600; font-size: 1.05rem; }
+  .meta { color: var(--soft); font-size: .8125rem; }
+  .badge { display: inline-block; font-size: .75rem; font-weight: 600; padding: .15rem .5rem; border-radius: 2px; margin-right: .35rem; }
+  .b-immediate { background: #F3E3C4; color: var(--gold-deep); }
+  .b-standard { background: #EEF0F3; color: var(--soft); }
+  .b-nurture { background: #E4EEF0; color: #2F5F66; }
+  .b-warn { background: #FBEEEC; color: var(--brick); }
+  .summary { margin: .55rem 0 .4rem; }
+  dl { display: grid; grid-template-columns: max-content 1fr; gap: .15rem .9rem; margin: .5rem 0 0; font-size: .875rem; }
+  dt { color: var(--soft); } dd { margin: 0; word-break: break-word; }
+  @media (prefers-reduced-motion: reduce) { .msg.new { animation: none; } }
+</style>
+</head>
+<body>
+<header>
+  <div><h1>#referral-leads</h1><small>Demo server · simulated sales channel (stands in for Slack)</small></div>
+  <div class="pills"><span class="pill" id="ai">AI agents: up</span><span class="pill" id="hs">HubSpot: up</span></div>
+</header>
+<main id="list"><p class="empty">Waiting for the first referral…</p></main>
+<script>
+  var seen = {}, first = true;
+  function esc(s) { var d = document.createElement('div'); d.textContent = s == null ? '' : String(s); return d.innerHTML; }
+  var TIER = { immediate: 'Priority', standard: 'Standard', nurture: 'Nurture' };
+  function render(data) {
+    var s = data.state;
+    var ai = document.getElementById('ai'), hs = document.getElementById('hs');
+    ai.textContent = 'AI agents: ' + (s.aiDown ? 'DOWN' : 'up'); ai.className = 'pill' + (s.aiDown ? ' down' : '');
+    hs.textContent = 'HubSpot: ' + (s.hubspotDown ? 'DOWN' : 'up'); hs.className = 'pill' + (s.hubspotDown ? ' down' : '');
+    var list = document.getElementById('list');
+    if (!data.feed.length) { list.innerHTML = '<p class="empty">Waiting for the first referral…</p>'; seen = {}; return; }
+    list.innerHTML = data.feed.map(function (m) {
+      var fresh = !first && !seen[m.id]; seen[m.id] = true;
+      return '<article class="msg ' + esc(m.routing_tier) + (fresh ? ' new' : '') + '">' +
+        '<div class="top"><span class="who">🎯 ' + esc(m.prospect_name) + '</span><span class="meta">' + esc(new Date(m.at).toLocaleTimeString()) + ' · answered in ' + (m.ms / 1000).toFixed(1) + 's</span></div>' +
+        '<div style="margin-top:.35rem"><span class="badge b-' + esc(m.routing_tier) + '">' + esc(TIER[m.routing_tier] || m.routing_tier) + '</span>' +
+        '<span class="badge b-standard">Score: ' + esc(m.lead_score) + ' (' + Math.round((m.confidence || 0) * 100) + '%)</span>' +
+        (m.crm_synced ? '<span class="badge b-standard">HubSpot ✓</span>' : '<span class="badge b-warn">HubSpot failed · logged</span>') +
+        (m.fallbacks.length ? '<span class="badge b-warn">' + m.fallbacks.length + ' agent fallback' + (m.fallbacks.length > 1 ? 's' : '') + '</span>' : '') + '</div>' +
+        '<p class="summary">' + esc(m.final_summary) + '</p>' +
+        '<dl><dt>Partner</dt><dd>' + esc(m.partner_name) + ' (' + esc(m.partner_code) + ')</dd>' +
+        '<dt>Contact</dt><dd>' + esc(m.prospect_email) + ' · ' + esc(m.prospect_phone) + '</dd>' +
+        '<dt>Wants</dt><dd>' + esc(m.intent) + '</dd>' +
+        '<dt>Product</dt><dd>' + esc(m.recommended_product) + '</dd>' +
+        (m.crm_synced ? '' : '<dt>CRM error</dt><dd>' + esc(m.crm_error) + '</dd>') + '</dl></article>';
+    }).join('');
+    first = false;
+  }
+  function poll() {
+    fetch('/__demo/feed', { cache: 'no-store' }).then(function (r) { return r.json(); }).then(render).catch(function () {}).then(function () { setTimeout(poll, 1200); });
+  }
+  poll();
+</script>
+</body>
+</html>

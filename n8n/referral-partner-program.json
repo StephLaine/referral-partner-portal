@@ -1,0 +1,1323 @@
+{
+  "name": "Referral Partner Program",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "referral",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "3c99bb43-c142-4c50-9977-0f1da1408fa8",
+      "name": "Webhook1",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -2464,
+        1104
+      ],
+      "webhookId": "7c27f22a-f8be-4c85-861e-6956d82e381a"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "ad5ab990-f99c-40c1-ba9d-a23ba9543d66",
+              "leftValue": "={{$json.body.partner_code}}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "53c0dfe0-3f6d-4bd5-829b-8c5fc9cfea93",
+              "leftValue": "={{$json.body.prospect_name}}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "2acdc105-8881-4ae5-afbb-44560d57c596",
+              "leftValue": "={{$json.body.prospect_email}}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "786e2c3c-073c-478a-b06b-05fd6d7627bb",
+              "leftValue": "={{$json.body.prospect_phone}}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "5e0a96cb-811c-4ee4-b35d-3e17f998cb05",
+              "leftValue": "={{$json.body.intent}}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {},
+        "looseTypeValidation": true
+      },
+      "id": "f07d120d-08f9-43ce-8a5f-8e348f4e096a",
+      "name": "Validate Required Fields1",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -2240,
+        1104
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "12YztQl1kys3hLNCiRRHRU37ud9a6bagl1prXl6APifQ",
+          "mode": "list",
+          "cachedResultName": "Week 1 Referral Program extended",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/12YztQl1kys3hLNCiRRHRU37ud9a6bagl1prXl6APifQ/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1974921664,
+          "mode": "list",
+          "cachedResultName": "Partners",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/12YztQl1kys3hLNCiRRHRU37ud9a6bagl1prXl6APifQ/edit#gid=1974921664"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "partner_code",
+              "lookupValue": "={{$node[\"Webhook1\"].json.body.partner_code}}"
+            }
+          ]
+        },
+        "options": {
+          "returnFirstMatch": true
+        }
+      },
+      "id": "ecb88594-3fd3-417f-a7f0-cd9e61657cd1",
+      "name": "Find Partner1",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -2016,
+        1008
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "nXvbQqQfLoOja8VF",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "b8607d90-8a7f-446a-bd80-251fe494f05c",
+              "leftValue": "={{$json.partner_code}}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {},
+        "looseTypeValidation": true
+      },
+      "id": "22ff41e0-7d3c-43d2-bc40-b222ebfe6be6",
+      "name": "Partner Valid?1",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -1792,
+        1008
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "71e3772e-0f7f-4931-8398-6a076906d9bb",
+              "name": "partner_code",
+              "value": "={{$json.partner_code}}",
+              "type": "string"
+            },
+            {
+              "id": "df75eb55-ad30-43f3-bb64-832d7a3b00eb",
+              "name": "partner_name",
+              "value": "={{$json.partner_name}}",
+              "type": "string"
+            },
+            {
+              "id": "6b1bdc99-a6a7-4e95-9386-3514b5d53329",
+              "name": "partner_email",
+              "value": "={{$json.partner_email}}",
+              "type": "string"
+            },
+            {
+              "id": "3e50ae45-1a62-4945-88bd-6c6344bb8e1b",
+              "name": "prospect_name",
+              "value": "={{$node[\"Webhook1\"].json.body.prospect_name}}",
+              "type": "string"
+            },
+            {
+              "id": "3ffb83dd-d628-4462-8678-b47f153882e1",
+              "name": "prospect_email",
+              "value": "={{$node[\"Webhook1\"].json.body.prospect_email}}",
+              "type": "string"
+            },
+            {
+              "id": "0185aa90-bba7-4ceb-bace-ed0e82530c28",
+              "name": "prospect_phone",
+              "value": "={{$node[\"Webhook1\"].json.body.prospect_phone}}",
+              "type": "string"
+            },
+            {
+              "id": "d60e7f4f-9346-42c8-91a7-e2ba6f4153882e1",
+              "name": "intent",
+              "value": "={{$node[\"Webhook1\"].json.body.intent}}",
+              "type": "string"
+            },
+            {
+              "id": "17b74f23-e73c-41ef-9ecc-cfc7722b13c8",
+              "name": "status",
+              "value": "New",
+              "type": "string"
+            },
+            {
+              "id": "864a2b2b-b0bf-426e-bc42-808be8c41292",
+              "name": "timestamp",
+              "value": "={{$now}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "2c20fa4b-4162-424f-b96a-23724a6d6421",
+      "name": "Prepare Lead Data1",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -1568,
+        880
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "12YztQl1kys3hLNCiRRHRU37ud9a6bagl1prXl6APifQ",
+          "mode": "list",
+          "cachedResultName": "Week 1 Referral Program",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/12YztQl1kys3hLNCiRRHRU37ud9a6bagl1prXl6APifQ/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 70860374,
+          "mode": "list",
+          "cachedResultName": "Leads",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/12YztQl1kys3hLNCiRRHRU37ud9a6bagl1prXl6APifQ/edit#gid=70860374"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "timestamp": "={{$json.timestamp}}",
+            "partner_code": "={{$json.partner_code}}",
+            "partner_name": "={{$json.partner_name}}",
+            "prospect_name": "={{$json.prospect_name}}",
+            "partner_email": "={{$json.partner_email}}",
+            "prospect_email": "={{$json.prospect_email}}",
+            "prospect_phone": "={{$json.prospect_phone}}",
+            "intent": "={{$json.intent}}",
+            "status": "={{$json.status}}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "timestamp",
+              "displayName": "timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "partner_code",
+              "displayName": "partner_code",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "partner_name",
+              "displayName": "partner_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "partner_email",
+              "displayName": "partner_email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "prospect_name",
+              "displayName": "prospect_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "prospect_email",
+              "displayName": "prospect_email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "prospect_phone",
+              "displayName": "prospect_phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "intent",
+              "displayName": "intent",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "f157893e-4158-479f-a2a6-f72e44da3e77",
+      "name": "Save Lead1",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -1344,
+        912
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "OAq8P2EpY1LdXKt5",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "email": "={{$json.prospect_email}}",
+        "additionalFields": {
+          "firstname": "={{$json.prospect_name.split(' ')[0]}}",
+          "lastname": "={{$json.prospect_name.split(' ').slice(1).join(' ')}}",
+          "phone": "={{$json.prospect_phone}}",
+          "lifecyclestage": "={{$json.lifecyclestage}}",
+          "referral_partner_code": "={{$json.partner_code}}",
+          "referral_partner_name": "={{$json.partner_name}}",
+          "referral_partner_email": "={{$json.partner_email}}",
+          "referral_intent": "={{$json.intent}}"
+        },
+        "options": {}
+      },
+      "id": "ae47b684-3597-4a61-a5e1-bdccf90862b9",
+      "name": "HubSpot: Upsert Contact",
+      "type": "n8n-nodes-base.hubspot",
+      "typeVersion": 2,
+      "position": [
+        -1184,
+        976
+      ],
+      "credentials": {
+        "hubspotApi": {
+          "id": "KBUdmiHqUFeaXo88",
+          "name": "HubSpot account 2"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "cs1",
+              "name": "crm_synced",
+              "type": "boolean",
+              "value": true
+            },
+            {
+              "id": "cs2",
+              "name": "crm_contact_id",
+              "type": "string",
+              "value": "={{ $json.id || $json.vid || '' }}"
+            },
+            {
+              "id": "cs3",
+              "name": "crm_error",
+              "type": "string",
+              "value": ""
+            }
+          ]
+        },
+        "options": {
+          "includeOtherFields": true
+        }
+      },
+      "id": "1c11b6eb-5f31-4f72-ab68-f38b40943691",
+      "name": "CRM Success",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -992,
+        944
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C0BRZ17EGBZ",
+          "mode": "list",
+          "cachedResultName": "referral-leads"
+        },
+        "text": "=🎯 New Referral Lead  Partner: {{$node[\"Prepare Lead Data1\"].json.partner_name}} Partner Code: {{$node[\"Prepare Lead Data1\"].json.partner_code}}  Prospect: {{$node[\"Prepare Lead Data1\"].json.prospect_name}} Email: {{$node[\"Prepare Lead Data1\"].json.prospect_email}} Phone: {{$node[\"Prepare Lead Data1\"].json.prospect_phone}}  Intent: {{$node[\"Prepare Lead Data1\"].json.intent}}  Status: {{$node[\"Prepare Lead Data1\"].json.status}}  CRM Synced: {{$json.crm_synced ? '✅ Yes (HubSpot ID ' + $json.crm_contact_id + ')' : '❌ No - logged to CRM_Sync_Errors (' + $json.crm_error + ')'}}  AI Lead Score: {{$('Validate Referral Decision').item.json.lead_score}} ({{Math.round(($('Validate Referral Decision').item.json.confidence||0)*100)}}% confidence)  AI Routing Tier: {{$('Validate Referral Decision').item.json.routing_tier}}  AI Summary: {{$('Validate Referral Decision').item.json.final_summary}}",
+        "otherOptions": {}
+      },
+      "id": "e7aae673-881e-4546-8742-13d86e9a8d50",
+      "name": "Notify Sales1",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.7,
+      "position": [
+        -752,
+        928
+      ],
+      "webhookId": "426a6ff7-059d-4f93-b8b6-e395305f71f5",
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "U48Y5Wqn1CXADXSb",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ce1",
+              "name": "crm_synced",
+              "type": "boolean",
+              "value": false
+            },
+            {
+              "id": "ce2",
+              "name": "crm_contact_id",
+              "type": "string",
+              "value": ""
+            },
+            {
+              "id": "ce3",
+              "name": "crm_error",
+              "type": "string",
+              "value": "={{ $json.error || $json.message || 'Unknown HubSpot error' }}"
+            },
+            {
+              "id": "ce4",
+              "name": "crm_error_status",
+              "type": "string",
+              "value": "={{$json.error?.httpCode || $json.statusCode || 'n/a'}}"
+            },
+            {
+              "id": "ce5",
+              "name": "crm_error_timestamp",
+              "type": "string",
+              "value": "={{$now.toISO()}}"
+            },
+            {
+              "id": "ce6",
+              "name": "partner_code",
+              "type": "string",
+              "value": "={{$('Prepare Lead Data1').item.json.partner_code}}"
+            },
+            {
+              "id": "ce7",
+              "name": "partner_name",
+              "type": "string",
+              "value": "={{$('Prepare Lead Data1').item.json.partner_name}}"
+            },
+            {
+              "id": "ce8",
+              "name": "partner_email",
+              "type": "string",
+              "value": "={{$('Prepare Lead Data1').item.json.partner_email}}"
+            },
+            {
+              "id": "ce9",
+              "name": "prospect_name",
+              "type": "string",
+              "value": "={{$('Prepare Lead Data1').item.json.prospect_name}}"
+            },
+            {
+              "id": "ce10",
+              "name": "prospect_email",
+              "type": "string",
+              "value": "={{$('Prepare Lead Data1').item.json.prospect_email}}"
+            },
+            {
+              "id": "ce11",
+              "name": "prospect_phone",
+              "type": "string",
+              "value": "={{$('Prepare Lead Data1').item.json.prospect_phone}}"
+            },
+            {
+              "id": "ce12",
+              "name": "intent",
+              "type": "string",
+              "value": "={{$('Prepare Lead Data1').item.json.intent}}"
+            },
+            {
+              "id": "ce13",
+              "name": "status",
+              "type": "string",
+              "value": "={{$('Prepare Lead Data1').item.json.status}}"
+            }
+          ]
+        },
+        "options": {
+          "includeOtherFields": true
+        }
+      },
+      "id": "e776a56f-9369-4a7f-beb9-0ffe5c932935",
+      "name": "CRM Error",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1248,
+        1344
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "12YztQl1kys3hLNCiRRHRU37ud9a6bagl1prXl6APifQ",
+          "mode": "list",
+          "cachedResultName": "Week 1 Referral Program"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 911503228,
+          "mode": "list",
+          "cachedResultName": "CRM_Sync_Errors",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/12YztQl1kys3hLNCiRRHRU37ud9a6bagl1prXl6APifQ/edit#gid=911503228"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "timestamp": "={{ $json.crm_error_timestamp }}",
+            "status_code": "={{ $json.crm_error_status }}",
+            "error_message": "={{ $json.crm_error  }}",
+            "failed_node": "=HubSpot: Upsert Contact",
+            "partner_code": "={{ $json.partner_code }}",
+            "prospect_email": "={{ $json.prospect_email }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "timestamp",
+              "displayName": "timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "failed_node",
+              "displayName": "failed_node",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "partner_code",
+              "displayName": "partner_code",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "prospect_email",
+              "displayName": "prospect_email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status_code",
+              "displayName": "status_code",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "error_message",
+              "displayName": "error_message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "a57ff8ef-b1dc-4e5a-a29c-926e5765466a",
+      "name": "Log CRM Sync Error",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -656,
+        1216
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "OAq8P2EpY1LdXKt5",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{$node[\"Prepare Lead Data1\"].json.partner_email}}",
+        "subject": "Referral received : thank you",
+        "message": "=Hello {{$node[\"Prepare Lead Data1\"].json.partner_name}},\n\n{{$node[\"Validate Referral Decision\"].json.partner_email_body}}\n\nReferral details:\n\nProspect: {{$node[\"Prepare Lead Data1\"].json.prospect_name}}\nIntent: {{$node[\"Prepare Lead Data1\"].json.intent}}\n\nThank you for partnering with us.\n\nBest regards,\nThe Insurance Team",
+        "options": {}
+      },
+      "id": "d972bd2a-cf79-4ba9-b984-f1b91507ac73",
+      "name": "Partner Confirmation1",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        -592,
+        912
+      ],
+      "webhookId": "35044102-bbe9-42fb-bee4-2c6ca63cc5c1",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "s1lL3jTb6V2upaXB",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{$node[\"Prepare Lead Data1\"].json.prospect_email}}",
+        "subject": "Thank you for your interest",
+        "message": "=Hello {{$node[\"Prepare Lead Data1\"].json.prospect_name}},\n\n{{$node[\"Validate Referral Decision\"].json.prospect_email_body}}\n\nYour request:\n\nIntent: {{$node[\"Prepare Lead Data1\"].json.intent}}\n\nIf you have any questions, please feel free to contact us.\n\nBest regards,\nThe Insurance Team",
+        "options": {}
+      },
+      "id": "ea4eec5f-5edf-41d3-81cb-da63194013ec",
+      "name": "Prospect Welcome1",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        -416,
+        912
+      ],
+      "webhookId": "b3d6480b-4399-442f-8237-1cf0fc032b82",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "s1lL3jTb6V2upaXB",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ success: true, message: \"Referral received successfully\", partner_code: $node[\"Prepare Lead Data1\"].json.partner_code, prospect: $node[\"Prepare Lead Data1\"].json.prospect_name, routing_tier: $node[\"Validate Referral Decision\"].json.routing_tier }) }}",
+        "options": {}
+      },
+      "id": "f99a9eee-d546-49c1-bf9a-eea7ed768ac0",
+      "name": "Success Response1",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -160,
+        896
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"success\": false,\n  \"error\": \"Unknown partner code\"\n}",
+        "options": {}
+      },
+      "id": "db602c1f-7791-4242-b6ac-03f066bf2fc6",
+      "name": "Unknown Partner1",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -1568,
+        1152
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"success\": false,\n  \"error\": \"Missing required field\"\n}",
+        "options": {}
+      },
+      "id": "77ea9f6d-f68e-4ece-a102-9ae767edac62",
+      "name": "Missing required Field1",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -2016,
+        1264
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: 'claude-sonnet-4-5', max_tokens: 500, system: `You are a lead qualification specialist for an insurance referral program. Given a referred prospect's name, phone, email, and stated intent, classify how sales-ready this lead is. Respond with ONLY a JSON object matching this exact schema, no markdown, no explanation, no extra text: {\\\"lead_score\\\": \\\"hot\\\"|\\\"warm\\\"|\\\"cold\\\", \\\"confidence\\\": number between 0 and 1, \\\"reasoning\\\": short string under 200 characters}`, messages: [ { role: 'user', content: `Prospect: ${$node[\"Prepare Lead Data1\"].json.prospect_name}. Phone: ${$node[\"Prepare Lead Data1\"].json.prospect_phone}. Email: ${$node[\"Prepare Lead Data1\"].json.prospect_email}. Stated intent: \\\"${$node[\"Prepare Lead Data1\"].json.intent}\\\". Classify this lead.` } ] }) }}",
+        "options": {}
+      },
+      "id": "agent-lead-qualification-agent",
+      "name": "Lead Qualification Agent",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1152,
+        640
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_WITH_ANTHROPIC_CRED_ID",
+          "name": "Anthropic API Key"
+        }
+      },
+      "onError": "continueRegularOutput",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "parameters": {
+        "jsCode": "const original = $('Prepare Lead Data1').item.json;\nlet parsed;\nlet valid = true;\nlet errorMsg = '';\ntry {\n  const raw = $json.content[0].text.trim().replace(/^```(?:json)?\\s*/i, '').replace(/\\s*```$/, '');\n  parsed = JSON.parse(raw);\n  if (!('lead_score' in parsed)) throw new Error('missing required key: lead_score');\n} catch (e) {\n  valid = false;\n  errorMsg = e.message;\n  parsed = { lead_score: 'warm', confidence: 0, reasoning: 'fallback - agent output invalid' };\n}\nreturn [{ json: { ...original, ...parsed, ['validate_lead_qualification_valid']: valid, ['validate_lead_qualification_error']: errorMsg } }];"
+      },
+      "id": "validate-validate-lead-qualification",
+      "name": "Validate Lead Qualification",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -976,
+        640
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: 'claude-sonnet-4-5', max_tokens: 500, system: `You are a CRM data specialist for an insurance company. Given a referred prospect's stated intent, decide what HubSpot lifecycle stage and product line to associate with this lead, and write a one-sentence internal note for the sales team. Respond with ONLY a JSON object matching this exact schema, no markdown, no explanation, no extra text: {\\\"lifecyclestage\\\": \\\"lead\\\"|\\\"opportunity\\\", \\\"recommended_product\\\": short string, \\\"internal_note\\\": string under 150 characters}`, messages: [ { role: 'user', content: `Prospect intent: \\\"${$node[\"Prepare Lead Data1\"].json.intent}\\\". Referral partner: ${$node[\"Prepare Lead Data1\"].json.partner_name}.` } ] }) }}",
+        "options": {}
+      },
+      "id": "agent-crm-enrichment-agent",
+      "name": "CRM Enrichment Agent",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1152,
+        800
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_WITH_ANTHROPIC_CRED_ID",
+          "name": "Anthropic API Key"
+        }
+      },
+      "onError": "continueRegularOutput",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "parameters": {
+        "jsCode": "const original = $('Prepare Lead Data1').item.json;\nlet parsed;\nlet valid = true;\nlet errorMsg = '';\ntry {\n  const raw = $json.content[0].text.trim().replace(/^```(?:json)?\\s*/i, '').replace(/\\s*```$/, '');\n  parsed = JSON.parse(raw);\n  if (!('lifecyclestage' in parsed)) throw new Error('missing required key: lifecyclestage');\n} catch (e) {\n  valid = false;\n  errorMsg = e.message;\n  parsed = { lifecyclestage: 'lead', recommended_product: 'General inquiry', internal_note: 'fallback - agent output invalid' };\n}\nreturn [{ json: { ...original, ...parsed, ['validate_crm_enrichment_valid']: valid, ['validate_crm_enrichment_error']: errorMsg } }];"
+      },
+      "id": "validate-validate-crm-enrichment",
+      "name": "Validate CRM Enrichment",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -976,
+        800
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: 'claude-sonnet-4-5', max_tokens: 500, system: `You are a customer communications specialist for an insurance company referral program. Write two short, warm, professional email bodies as plain text, no subject line, no markdown, no greeting line (the greeting is added separately): one thanking the partner for the referral, one welcoming the prospect. Respond with ONLY a JSON object matching this exact schema, no markdown, no explanation, no extra text: {\\\"partner_email_body\\\": string, \\\"prospect_email_body\\\": string}`, messages: [ { role: 'user', content: `Partner name: ${$node[\"Prepare Lead Data1\"].json.partner_name}. Prospect name: ${$node[\"Prepare Lead Data1\"].json.prospect_name}. Prospect intent: \\\"${$node[\"Prepare Lead Data1\"].json.intent}\\\".` } ] }) }}",
+        "options": {}
+      },
+      "id": "agent-partner-communication-agent",
+      "name": "Partner Communication Agent",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1152,
+        960
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_WITH_ANTHROPIC_CRED_ID",
+          "name": "Anthropic API Key"
+        }
+      },
+      "onError": "continueRegularOutput",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "parameters": {
+        "jsCode": "const original = $('Prepare Lead Data1').item.json;\nlet parsed;\nlet valid = true;\nlet errorMsg = '';\ntry {\n  const raw = $json.content[0].text.trim().replace(/^```(?:json)?\\s*/i, '').replace(/\\s*```$/, '');\n  parsed = JSON.parse(raw);\n  if (!('partner_email_body' in parsed)) throw new Error('missing required key: partner_email_body');\n} catch (e) {\n  valid = false;\n  errorMsg = e.message;\n  parsed = { partner_email_body: 'Thank you for sending us a referral for ' + original.prospect_name + '. We have received the referral and our team will follow up with the prospect.', prospect_email_body: \"Thank you for your interest. We've received your request and a member of our team will follow up with you shortly.\" };\n}\nreturn [{ json: { ...original, ...parsed, ['validate_partner_communication_valid']: valid, ['validate_partner_communication_error']: errorMsg } }];"
+      },
+      "id": "validate-validate-partner-communication",
+      "name": "Validate Partner Communication",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -976,
+        960
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "id": "merge-ab",
+      "name": "Merge AB",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [
+        -800,
+        720
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "id": "merge-abc",
+      "name": "Merge ABC",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [
+        -624,
+        840
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: 'claude-sonnet-4-5', max_tokens: 500, system: `You are the final decision-maker for an insurance referral pipeline. You receive a lead qualification score, CRM enrichment data, and drafted communications from three specialist agents. Decide the routing_tier (\\\"immediate\\\"|\\\"standard\\\"|\\\"nurture\\\") based primarily on lead_score (hot=immediate, warm=standard, cold=nurture unless reasoning suggests otherwise), and write a 1-sentence final_summary for the sales Slack channel combining the qualification reasoning and recommended product. Respond with ONLY a JSON object matching this exact schema, no markdown, no explanation, no extra text: {\\\"routing_tier\\\": \\\"immediate\\\"|\\\"standard\\\"|\\\"nurture\\\", \\\"final_summary\\\": string under 200 characters}`, messages: [ { role: 'user', content: `Lead score: ${$json.lead_score} (confidence ${$json.confidence}). Reasoning: ${$json.reasoning}. Recommended product: ${$json.recommended_product}. Internal note: ${$json.internal_note}.` } ] }) }}",
+        "options": {}
+      },
+      "id": "agent-referral-decision-agent",
+      "name": "Referral Decision Agent",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -448,
+        840
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_WITH_ANTHROPIC_CRED_ID",
+          "name": "Anthropic API Key"
+        }
+      },
+      "onError": "continueRegularOutput",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "parameters": {
+        "jsCode": "const original = $('Merge ABC').item.json;\nlet parsed;\nlet valid = true;\nlet errorMsg = '';\ntry {\n  const raw = $json.content[0].text.trim().replace(/^```(?:json)?\\s*/i, '').replace(/\\s*```$/, '');\n  parsed = JSON.parse(raw);\n  if (!('routing_tier' in parsed)) throw new Error('missing required key: routing_tier');\n} catch (e) {\n  valid = false;\n  errorMsg = e.message;\n  parsed = { routing_tier: 'standard', final_summary: 'Automated summary unavailable - agent output invalid; please review referral manually.' };\n}\nreturn [{ json: { ...original, ...parsed, ['validate_referral_decision_valid']: valid, ['validate_referral_decision_error']: errorMsg } }];"
+      },
+      "id": "validate-validate-referral-decision",
+      "name": "Validate Referral Decision",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -272,
+        840
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook1": {
+      "main": [
+        [
+          {
+            "node": "Validate Required Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Required Fields1": {
+      "main": [
+        [
+          {
+            "node": "Find Partner1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Missing required Field1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Partner1": {
+      "main": [
+        [
+          {
+            "node": "Partner Valid?1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Partner Valid?1": {
+      "main": [
+        [
+          {
+            "node": "Prepare Lead Data1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Unknown Partner1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Lead Data1": {
+      "main": [
+        [
+          {
+            "node": "Save Lead1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Lead1": {
+      "main": [
+        [
+          {
+            "node": "Lead Qualification Agent",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "CRM Enrichment Agent",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Partner Communication Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HubSpot: Upsert Contact": {
+      "main": [
+        [
+          {
+            "node": "CRM Success",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "CRM Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CRM Success": {
+      "main": [
+        [
+          {
+            "node": "Notify Sales1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notify Sales1": {
+      "main": [
+        [
+          {
+            "node": "Partner Confirmation1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CRM Error": {
+      "main": [
+        [
+          {
+            "node": "Log CRM Sync Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log CRM Sync Error": {
+      "main": [
+        [
+          {
+            "node": "Notify Sales1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Partner Confirmation1": {
+      "main": [
+        [
+          {
+            "node": "Prospect Welcome1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prospect Welcome1": {
+      "main": [
+        [
+          {
+            "node": "Success Response1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lead Qualification Agent": {
+      "main": [
+        [
+          {
+            "node": "Validate Lead Qualification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CRM Enrichment Agent": {
+      "main": [
+        [
+          {
+            "node": "Validate CRM Enrichment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Partner Communication Agent": {
+      "main": [
+        [
+          {
+            "node": "Validate Partner Communication",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Lead Qualification": {
+      "main": [
+        [
+          {
+            "node": "Merge AB",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate CRM Enrichment": {
+      "main": [
+        [
+          {
+            "node": "Merge AB",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge AB": {
+      "main": [
+        [
+          {
+            "node": "Merge ABC",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Partner Communication": {
+      "main": [
+        [
+          {
+            "node": "Merge ABC",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge ABC": {
+      "main": [
+        [
+          {
+            "node": "Referral Decision Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Referral Decision Agent": {
+      "main": [
+        [
+          {
+            "node": "Validate Referral Decision",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Referral Decision": {
+      "main": [
+        [
+          {
+            "node": "HubSpot: Upsert Contact",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "c6c995a0-b1d9-4b45-ab0b-368916c09db2",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "969eeef74b99a0b302034cd8b4ef253224a60d3557de7bffe58459d83ef530ff"
+  },
+  "nodeGroups": [],
+  "id": "0Uybe3x3cdRb1Xcx",
+  "tags": []
+}

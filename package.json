@@ -1,0 +1,13 @@
+{
+  "name": "referral-partner-portal",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Partner-facing referral form that feeds a multi-agent n8n workflow.",
+  "scripts": {
+    "demo": "node demo/server.js",
+    "screenshots": "node demo/screenshots.js",
+    "rehearse": "node demo/rehearse.js",
+    "test": "node --test \"tests/*.test.js\""
+  },
+  "engines": { "node": ">=20" }
+}

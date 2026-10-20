@@ -1,0 +1,7 @@
+# Vercel serves only the portal itself: index.html, app.js, config.js
+tests/
+demo/
+n8n/
+package.json
+*.md
+.gitignore
