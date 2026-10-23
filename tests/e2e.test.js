@@ -15,9 +15,16 @@ test.describe('portal in a real browser', { skip }, () => {
     await new Promise(r => demo.server.listen(0, '127.0.0.1', r));
     base = `http://127.0.0.1:${demo.server.address().port}`;
     browser = await launch();
-    page = await browser.newPage();
+    page = await browser.newPage({ coverage: !!process.env.COVERAGE_DIR });
   });
-  test.after(async () => { await browser?.close(); demo?.server.close(); });
+  test.after(async () => {
+    if (process.env.COVERAGE_DIR && page) {
+      const fs = require('node:fs'); const path = require('node:path');
+      fs.mkdirSync(process.env.COVERAGE_DIR, { recursive: true });
+      fs.writeFileSync(path.join(process.env.COVERAGE_DIR, 'browser-e2e.json'), JSON.stringify({ result: await page.takeCoverage() }));
+    }
+    await browser?.close(); demo?.server.close();
+  });
   test.beforeEach(async () => {
     Object.assign(demo.state, { aiDown: false, hubspotDown: false, crashNext: false });
     await page.goto(base + '/');
@@ -64,6 +71,15 @@ test.describe('portal in a real browser', { skip }, () => {
     assert.equal(await page.eval("document.getElementById('partner_code').value"), 'PARTNER001', 'remembered on this device');
   });
 
+  test('a sent referral is never restored as a draft', async () => {
+    await page.fill({ ...referral, partner_code: 'PARTNER001' });
+    await page.click('#submit-btn');
+    await page.waitFor(visible('.status-panel.success'));
+    await page.goto(base + '/');
+    assert.equal(await page.eval("document.getElementById('prospect_name').value"), '', 'client details are gone after sending');
+    assert.equal(await page.eval(visible('#draft-note')), false);
+  });
+
   test('an unknown partner code is explained next to the field, with the form intact', async () => {
     await page.fill({ ...referral, partner_code: 'PARTNER999' });
     await page.click('#submit-btn');
@@ -99,6 +115,34 @@ test.describe('portal in a real browser', { skip }, () => {
     await page.click('#submit-btn');
     await page.waitFor(visible('.status-panel.success'));
     assert.equal(await page.eval("document.querySelector('.tier-badge').dataset.tier"), 'standard');
+  });
+
+  test('a network failure says so, and nothing typed is lost', async () => {
+    const offline = createDemoServer({ quiet: true, webhookUrl: 'http://127.0.0.1:9/webhook/referral' });
+    await new Promise(r => offline.server.listen(0, '127.0.0.1', r));
+    try {
+      await page.goto(`http://127.0.0.1:${offline.server.address().port}/`);
+      await page.fill(referral);
+      await page.click('#submit-btn');
+      await page.waitFor(visible('.status-panel.error'));
+      assert.match(await page.eval("document.querySelector('.status-panel h2').textContent"), /couldn't reach our server/);
+      await page.click('#retry-btn');
+      assert.equal(await page.eval("document.getElementById('prospect_name').value"), 'Maria Sanchez');
+      assert.equal(await page.eval("document.getElementById('submit-btn').disabled"), false);
+    } finally { offline.server.close(); }
+  });
+
+  test('a slow workflow times out with a warning not to resend', async () => {
+    const slow = createDemoServer({ quiet: true, speed: 20, timeoutMs: 700, unref: true });
+    await new Promise(r => slow.server.listen(0, '127.0.0.1', r));
+    try {
+      await page.goto(`http://127.0.0.1:${slow.server.address().port}/`);
+      await page.fill(referral);
+      await page.click('#submit-btn');
+      await page.waitFor(visible('.status-panel.error'), 10000);
+      assert.match(await page.eval("document.querySelector('.status-panel h2').textContent"), /taking longer than usual/);
+      assert.match(await page.eval("document.querySelector('.status-panel p').textContent"), /before sending it again/);
+    } finally { slow.server.closeAllConnections?.(); slow.server.close(); }
   });
 
   test('the page throws no JavaScript errors', () => {

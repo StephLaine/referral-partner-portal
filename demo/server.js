@@ -97,7 +97,8 @@ function createDemoServer(opts = {}) {
   const feed = [];
   let runs = 0;
   const log = (...a) => { if (!quiet) console.log(...a); };
-  const wait = (ms) => new Promise(r => setTimeout(r, ms * speed));
+  // `unref` lets tests exit while a deliberately slow run is still in progress.
+  const wait = (ms) => new Promise(r => { const t = setTimeout(r, ms * speed); if (opts.unref) t.unref(); });
 
   async function agent(label, fn, fallback, run) {
     const t0 = Date.now();

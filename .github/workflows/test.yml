@@ -1,0 +1,109 @@
+name: Tests
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  N8N_IMAGE: n8nio/n8n:2.43.8
+  MOCK_URL: http://127.0.0.1:5699
+
+jobs:
+  test:
+    name: Unit, browser, n8n integration, coverage, mutation
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Unit and browser tests
+        run: npm test
+
+      - name: Start n8n with the workflow under test
+        run: |
+          node tests/integration/build-workflow.js .it
+          docker volume create n8n_data
+          run_n8n() { docker run --rm -v n8n_data:/home/node/.n8n -v "$PWD/.it:/it:ro" "$N8N_IMAGE" "$@"; }
+          run_n8n import:credentials --input=/it/credentials.json
+          run_n8n import:workflow --input=/it/workflow.json
+          run_n8n publish:workflow --id=itReferralWf0001
+          docker run -d --name n8n --network host -v n8n_data:/home/node/.n8n \
+            -e N8N_DIAGNOSTICS_ENABLED=false -e N8N_PERSONALIZATION_ENABLED=false "$N8N_IMAGE" start
+          for i in $(seq 1 90); do
+            curl -s http://127.0.0.1:5678/webhook/referral | grep -qi "POST request" && echo "webhook registered after ${i}s" && exit 0
+            sleep 2
+          done
+          docker logs n8n | tail -50; exit 1
+
+      - name: n8n integration tests
+        env:
+          N8N_BASE_URL: http://127.0.0.1:5678
+        run: node --test --test-concurrency=1 tests/integration/*.itest.js
+
+      - name: Coverage report
+        run: npm run coverage
+
+      - name: Mutation check
+        run: npm run mutation
+
+      - name: n8n logs on failure
+        if: failure()
+        run: docker logs n8n 2>&1 | tail -100 || true
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage
+          path: |
+            coverage/REPORT.md
+            coverage/*.json
+          if-no-files-found: ignore
+
+  live-claude:
+    name: Live Claude end to end (needs ANTHROPIC_API_KEY)
+    # Costs a few cents per run, so never on pull requests from forks.
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      LLM_MODE: live
+    steps:
+      - name: Skip when no key is configured
+        if: env.ANTHROPIC_API_KEY == ''
+        run: echo "::notice::ANTHROPIC_API_KEY secret not set; live Claude test skipped."
+      - uses: actions/checkout@v4
+        if: env.ANTHROPIC_API_KEY != ''
+      - uses: actions/setup-node@v4
+        if: env.ANTHROPIC_API_KEY != ''
+        with:
+          node-version: 24
+      - name: Start n8n wired to the real Anthropic API
+        if: env.ANTHROPIC_API_KEY != ''
+        run: |
+          node tests/integration/build-workflow.js .it
+          docker volume create n8n_data
+          run_n8n() { docker run --rm -v n8n_data:/home/node/.n8n -v "$PWD/.it:/it:ro" "$N8N_IMAGE" "$@"; }
+          run_n8n import:credentials --input=/it/credentials.json
+          run_n8n import:workflow --input=/it/workflow.json
+          run_n8n publish:workflow --id=itReferralWf0001
+          rm -rf .it
+          docker run -d --name n8n --network host -v n8n_data:/home/node/.n8n -e N8N_DIAGNOSTICS_ENABLED=false "$N8N_IMAGE" start
+          for i in $(seq 1 90); do curl -s http://127.0.0.1:5678/webhook/referral | grep -qi "POST request" && exit 0; sleep 2; done
+          docker logs n8n | tail -50; exit 1
+      - name: Live end-to-end test
+        if: env.ANTHROPIC_API_KEY != ''
+        env:
+          N8N_BASE_URL: http://127.0.0.1:5678
+        run: node --test --test-concurrency=1 tests/integration/*.itest.js

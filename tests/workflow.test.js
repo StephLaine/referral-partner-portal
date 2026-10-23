@@ -65,6 +65,7 @@ test('each agent survives API failures and is followed by a validator with a fal
     const code = byName[validator].parameters.jsCode;
     assert.match(code, /replace\(\/\^```/, `${validator} must strip markdown fences before JSON.parse`);
     assert.match(code, /catch \(e\)[\s\S]*parsed = \{/, `${validator} must substitute a fallback`);
+    assert.match(code, /const SCHEMA = /, `${validator} must whitelist the keys it accepts`);
   }
 });
 

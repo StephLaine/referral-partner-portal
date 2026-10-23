@@ -13,13 +13,15 @@ const CANDIDATES = [
   '/usr/bin/google-chrome', '/usr/bin/chromium', '/usr/bin/chromium-browser'
 ].filter(Boolean);
 
-function findChrome() { return CANDIDATES.find(p => fs.existsSync(p)) || null; }
+function findChrome() { if (process.env.SKIP_BROWSER) return null; return CANDIDATES.find(p => fs.existsSync(p)) || null; }
 
 async function launch() {
   const bin = findChrome();
   if (!bin) throw new Error('Chrome not found. Set CHROME_PATH.');
   const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'rpp-chrome-'));
-  const proc = spawn(bin, ['--headless=new', '--remote-debugging-port=0', `--user-data-dir=${profile}`, '--no-first-run', '--no-default-browser-check', '--disable-gpu', 'about:blank'], { stdio: ['ignore', 'ignore', 'pipe'] });
+  const args = ['--headless=new', '--remote-debugging-port=0', `--user-data-dir=${profile}`, '--no-first-run', '--no-default-browser-check', '--disable-gpu'];
+  if (process.env.CI) args.push('--no-sandbox'); // CI runners block Chrome's user-namespace sandbox
+  const proc = spawn(bin, [...args, 'about:blank'], { stdio: ['ignore', 'ignore', 'pipe'] });
   const wsUrl = await new Promise((resolve, reject) => {
     let buf = '';
     const t = setTimeout(() => reject(new Error('Chrome did not start')), 20000);
@@ -36,13 +38,17 @@ async function launch() {
   };
   const send = (method, params = {}, sessionId) => new Promise((resolve, reject) => { const i = ++id; pending.set(i, { resolve, reject }); ws.send(JSON.stringify({ id: i, method, params, sessionId })); });
 
-  async function newPage({ width = 430, height = 932, scale = 2 } = {}) {
+  async function newPage(opts = {}) {
+    const { width = 430, height = 932, scale = 2 } = opts;
     const { targetId } = await send('Target.createTarget', { url: 'about:blank' });
     const { sessionId } = await send('Target.attachToTarget', { targetId, flatten: true });
     const s = (m, p) => send(m, p, sessionId);
     await s('Page.enable'); await s('Runtime.enable');
     await s('Emulation.setDeviceMetricsOverride', { width, height, deviceScaleFactor: scale, mobile: width < 600 });
     const errors = [];
+    const coverage = [];
+    const collect = async () => { if (!opts.coverage) return; const { result } = await s('Profiler.takePreciseCoverage'); coverage.push(...result.filter(r => /^https?:/.test(r.url))); };
+    if (opts.coverage) { await s('Profiler.enable'); await s('Profiler.startPreciseCoverage', { callCount: true, detailed: true }); }
     listeners.push(m => { if (m.sessionId === sessionId && m.method === 'Runtime.exceptionThrown') errors.push(m.params.exceptionDetails.exception?.description || m.params.exceptionDetails.text); });
     const page = {
       errors,
@@ -51,7 +57,7 @@ async function launch() {
         if (r.exceptionDetails) throw new Error(r.exceptionDetails.exception?.description || r.exceptionDetails.text);
         return r.result.value;
       },
-      async goto(url) { await s('Page.navigate', { url }); await page.waitFor("document.readyState === 'complete'"); },
+      async goto(url) { await collect(); await s('Page.navigate', { url }); await page.waitFor("document.readyState === 'complete'"); },
       async waitFor(expr, timeout = 15000) {
         const end = Date.now() + timeout;
         while (Date.now() < end) { try { if (await page.eval(expr)) return true; } catch (_) {} await new Promise(r => setTimeout(r, 100)); }
@@ -70,6 +76,7 @@ async function launch() {
         fs.writeFileSync(file, Buffer.from(data, 'base64'));
       },
       async fullHeight() { await s('Emulation.setDeviceMetricsOverride', { width, height, deviceScaleFactor: scale, mobile: width < 600 }); const h = await page.eval('Math.ceil(document.documentElement.scrollHeight)'); await s('Emulation.setDeviceMetricsOverride', { width, height: Math.max(height, h), deviceScaleFactor: scale, mobile: width < 600 }); },
+      async takeCoverage() { await collect(); return coverage; },
       close: () => send('Target.closeTarget', { targetId })
     };
     return page;
