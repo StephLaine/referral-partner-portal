@@ -89,7 +89,7 @@ In CI, GitHub Actions runs all of the above on every push and pull request, incl
 
 ## Known limitations
 
-- **The live form depends on the n8n instance.** If the instance is off, partners see "We couldn't reach the server" and nothing is saved. As of October 20, 2026 the n8n Cloud instance answers "No instance here".
+- **The live form depends on the n8n instance.** If the instance is off, partners see "We couldn't reach the server" and nothing is saved.
 - **Anyone with the link can submit.** A hidden field stops simple bots, not a determined person. Rate limiting belongs in front of the webhook.
 - **Partner codes are only checked inside n8n.** The form can't tell a code is wrong until the workflow answers.
 - **n8n runs the three specialist agents one after another, not in parallel.** Response time has not been measured on the live system.
@@ -100,7 +100,7 @@ In CI, GitHub Actions runs all of the above on every push and pull request, incl
 
 ## Next steps
 
-1. **Restore the n8n instance** and measure real response time, so the promise to partners is a number.
+1. **Measure real response time** on the live n8n instance, so the promise to partners is a number.
 2. **Store consent.** Add the `consent` field and its timestamp to the Leads sheet and to HubSpot.
 3. **Build a partner status page.** It would list every client a partner has sent and where each one stands.
 4. **Rate-limit the webhook** and check partner codes before the AI runs, to keep costs predictable.

@@ -2,7 +2,7 @@
 
 This is for whoever takes over the Referral Partner Portal. After reading it you should be able to run it, change it, deploy it and fix it without asking anyone. Start with the [README](README.md) for what the product does. This page covers how it works and how to extend it.
 
-Status on October 20, 2026: the portal is deployed, but the n8n Cloud instance it posts to is offline, so live submissions fail. Everything else works and passes its tests.
+Status: the portal is deployed on Vercel and posts to the n8n Cloud instance `stef667`. Every test passes in CI.
 
 ## 1. The pieces and who owns them
 
@@ -12,7 +12,7 @@ Every account below currently belongs to Stéphane Laine. Moving each one to Gay
 |---|---|---|---|
 | Portal | GitHub `StephLaine/referral-partner-portal`, a public repo | Static form: `index.html`, `app.js`, `config.js` | No build step |
 | Hosting | Vercel, https://referral-partner-portal-smoky.vercel.app | Deploys every push to `main` to production | `.vercelignore` limits the site to the three app files |
-| Workflow | n8n Cloud, instance `stef667` | Receives the form, runs the agents, does the actions | Offline. The export is `n8n/referral-partner-program.json`. |
+| Workflow | n8n Cloud, instance `stef667` | Receives the form, runs the agents, does the actions | The export is `n8n/referral-partner-program.json`. |
 | AI | Anthropic API | Four Claude calls per referral | Needs an API key credential in n8n |
 | Partner list and lead log | Google Sheet "Week 1 Referral Program extended" | Tabs `Partners`, `Leads`, `CRM_Sync_Errors` | Two Google credentials are used. See section 4. |
 | CRM | HubSpot | Contact upsert by email | Needs four custom contact properties |

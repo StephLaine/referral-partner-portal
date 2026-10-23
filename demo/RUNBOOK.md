@@ -17,8 +17,6 @@ The deck has the full word-for-word script in each slide's speaker notes. This p
 | The AI outage moment | Not practical live. Switch to Plan B for that one step. | Press `a` in the terminal |
 | What you must say | Nothing extra | "This is my test bench. The agents here are simulated, so the demo can't fail on Wi-Fi. It answers exactly like the real workflow." |
 
-**Status on October 20:** the n8n Cloud instance at stef667 answers "No instance here", so Plan A is not available until it's restored. Plan B is fully rehearsed.
-
 A good mix, once Plan A works: send Maria through the real workflow, so the audience sees the real Slack post and the real email, then switch to the test bench for the AI outage.
 
 ## Setup
@@ -27,7 +25,7 @@ A good mix, once Plan A works: send Maria through the real workflow, so the audi
 
 - [ ] Run `npm test`. All 41 tests should pass.
 - [ ] Run `npm run rehearse`. It should end with "fits" and "yes".
-- [ ] **Plan A only.** Restore the instance, import `n8n/referral-partner-program.json`, connect every credential and activate the workflow. Then run the rehearsal against it:
+- [ ] **Plan A only.** Make sure the instance is running, import `n8n/referral-partner-program.json`, connect every credential and activate the workflow. Then run the rehearsal against it:
   ```
   WEBHOOK=https://<your-instance>/webhook/referral npm run rehearse
   ```
