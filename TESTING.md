@@ -4,7 +4,7 @@
 
 ## Why testing, and why now
 
-Every serious bug I found in Week 9 lived inside the n8n workflow, and not one showed up by reading it: blank AI scores in every Slack message, one AI error stopping the whole referral, stray formatting quietly demoting hot leads, and a numeric phone number crashing the run. Yet the tests I shipped for Demo Day only checked the workflow's JSON and never executed it. For something a paying customer relies on, that's the most dangerous gap, because these failures are silent: a misranked lead or a score-less Slack message looks fine until a deal is lost. Gaya's team will also need to change prompts, add fields and swap models, and without tests that run the real workflow every edit is a gamble. Observability and deploy hardening matter too, but both assume a backend I can watch and deploy to, and the n8n Cloud instance is offline. Testing makes the system trustworthy wherever it ends up running, so it's the right investment first.
+Every serious bug I found in Week 9 lived inside the n8n workflow, and not one showed up by reading it: blank AI scores in every Slack message, one AI error stopping the whole referral, stray formatting quietly demoting hot leads, and a numeric phone number crashing the run. Yet the tests I shipped for Demo Day only checked the workflow's JSON and never executed it. For something a paying customer relies on, that's the most dangerous gap, because these failures are silent: a misranked lead or a score-less Slack message looks fine until a deal is lost. Gaya's team will also need to change prompts, add fields and swap models, and without tests that run the real workflow every edit is a gamble. Observability and deploy hardening matter too, but both assume a backend I can watch and deploy to, and the n8n Cloud instance is offline. Testing makes the system trustworthy wherever it ends up running, so it's the right investment first. The tradeoff I accepted: tests stop known failures from shipping, but they can't tell anyone when the live system breaks at 2 a.m. There's still no alerting or dashboard. And by default, the integration test fakes Claude and the four outside services, so it won't catch an expired credential or a model whose behavior drifts until the live-Claude job runs with a real key.
 
 ## Test report
 
@@ -67,18 +67,16 @@ In CI, [.github/workflows/test.yml](.github/workflows/test.yml) runs on every pu
 
 A second job runs the live-Claude test when the repository has an `ANTHROPIC_API_KEY` secret. It never runs on pull requests, so outside contributors can't spend the API budget. The run summary shows the coverage table, and the coverage files are attached to each run.
 
-## Reflection: what surprised me about production-grade testing
+## Reflection: what surprised me about production versus the demo
 
-I expected testing to confirm my code worked. Instead, it kept showing me where my understanding was wrong.
+The demo and the production version run almost the same code. The first surprise was that the difference between them isn't features. It's everything around the happy path.
 
-The first surprise was how little reading tells you. I had read the workflow many times. The blank Slack scores only appeared when the workflow actually ran, because the HubSpot step quietly replaced the data. The bugs weren't in any single node. They were in the handoffs between nodes that each worked fine alone.
+In the demo, I controlled every input. I typed clean names and knew the AI would answer in clean JSON. Production gets whatever a partner types, whatever a model returns and whatever an API does at 2 a.m. That's where the bugs that mattered lived. Sales would have seen blank AI scores in every Slack message, because the HubSpot step replaced the data. A phone number sent as digits crashed the run. None of this showed up when I read the workflow, only when it ran.
 
-The second surprise was that 100% coverage was easy and almost meaningless. One headless browser run took the portal from 34% to 99%. Coverage only proves a line ran, not that a test would notice it breaking. Planting bugs on purpose was the honest test, and it showed that one of my passing tests caught a bug only by accident.
+The second surprise was that thinking like production found a design flaw, not just mistakes. In the demo, the model is a helpful teammate. In production, it's a stranger whose answers I must check. Asking "what if the model returns extra fields?" revealed that a crafted referral could make it change which HubSpot contact gets updated. Nobody had asked me to think about prompt injection. A test made me.
 
-The third surprise was that tests found a design flaw, not just mistakes. Writing a test for "what if the model returns extra fields?" revealed that a crafted referral could make the AI overwrite which HubSpot contact gets updated. Nobody had asked me to think about prompt injection. A test made me.
+The third surprise was how easy it is to fake confidence. One browser run took coverage from 34% to 99%. Planting bugs on purpose was the honest check, and it showed one passing test was catching a bug by accident.
 
-The fourth surprise was that test code needs testing too. My fake AI outage didn't reach the decision agent, because that agent never sees the client's words. Then a run failed because n8n reports itself healthy before it registers the webhook. And a slow-server test kept the process alive for two minutes. Each looked like a product bug until I checked.
+The fourth surprise was that the safety net needs testing too. My fake AI outage never reached one of the agents, and n8n reported itself healthy before its webhook was ready. Each looked like a product bug until I checked.
 
-Finally, I learned that a mock has to be honest about what it fakes. I kept the AI request nodes real and faked only the far end, so the tests exercise what would actually break in production.
-
-The demo proved the happy path worked. The tests show what happens when it doesn't.
+A demo has to work once, in front of people. Production has to keep working when nobody is watching. The demo earned applause. The tests are what let Gaya put this in front of a paying customer.
