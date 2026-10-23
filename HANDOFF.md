@@ -82,7 +82,7 @@ n8n expressions refer to other nodes **by name**, for example `$('Prepare Lead D
 | Lead Qualification Agent | HTTP to Anthropic | `lead_score`, `confidence`, `reasoning` | Set to retry 3 times, then continue on error |
 | CRM Enrichment Agent | HTTP to Anthropic | `lifecyclestage`, `recommended_product`, `internal_note` | Same settings |
 | Partner Communication Agent | HTTP to Anthropic | `partner_email_body`, `prospect_email_body` | Same settings |
-| Validate … (4 nodes) | Code | Strip code fences, `JSON.parse`, check the required key, else use a fallback. Add `<node>_valid` and `<node>_error`. | The fallback values are listed in section 6 |
+| Validate … (4 nodes) | Code | Strip code fences, `JSON.parse`, check the required keys, keep only the keys the agent may set, check enums and ranges, else use a fallback. Add `<node>_valid` and `<node>_error`. | **Generated** by `n8n/build-validators.js`. Edit the schema there and rerun it, never the node by hand. The fallback values are listed in section 6. |
 | Merge AB, Merge ABC | Merge, combine by position | Join the three validated outputs into one item | Each agent returns one item. Combining by position assumes that. |
 | Referral Decision Agent | HTTP to Anthropic | `routing_tier`, `final_summary` from the merged item | Tiers must stay `immediate`, `standard` or `nurture` |
 | HubSpot: Upsert Contact | HubSpot | Creates or updates the contact by email | Its output **replaces** the item. That's why downstream nodes read from `Validate Referral Decision` and `Prepare Lead Data1`, not from `$json`. On error it takes the second output. |
@@ -133,10 +133,11 @@ Slack and Gmail have no error branch yet. If you add one, give each node `onErro
 1. Duplicate an agent node and its validator. Change the prompt, the required key and the fallback.
 2. Wire it from `Save Lead1`, then add a Merge node after `Merge ABC`.
 3. Keep `onError: continueRegularOutput` and the retry settings.
-4. Add the agent's name to `AGENTS` in `tests/workflow.test.js`.
+4. Add its schema to `n8n/build-validators.js` and rerun it.
+5. Add the agent's name to `AGENTS` in `tests/workflow.test.js` and `tests/integration/build-workflow.js`, and teach the fake Claude in `tests/integration/mock-services.js` to answer it.
 
 **Change the tiers.** Change all of these together:
-- The Decision agent's prompt and its validator fallback.
+- The Decision agent's prompt, and its schema and fallback in `n8n/build-validators.js`.
 - `TIERS` in `app.js`.
 - `TIER` in `demo/feed.html`.
 - `referralDecision` in `demo/server.js`.
@@ -152,19 +153,28 @@ Slack and Gmail have no error branch yet. If you add one, give each node `onErro
 
 ```bash
 npm run demo          # portal and simulated workflow on http://localhost:8787, sales feed on /feed
-npm test              # 41 tests, about 5 to 15 seconds, no dependencies
+npm test              # 111 unit and browser tests, about 10 seconds, no dependencies
+npm run test:n8n      # 10 integration tests: the real workflow on a throwaway n8n 2.43.8
+npm run coverage      # coverage/REPORT.md; fails below 85% critical-path line coverage
+npm run mutation      # plants 15 known bugs; fails if any goes uncaught
 npm run screenshots   # re-capture demo/screenshots/*.png
 npm run rehearse      # timed dry run of the 5-minute live demo
+node n8n/build-validators.js   # regenerate the four validator nodes after editing their schema
 ```
 
-`tests/helpers/browser.js` drives the installed Chrome over the DevTools protocol, so there's no Puppeteer to install. Set `CHROME_PATH` to use another Chromium-based browser.
+`tests/helpers/browser.js` drives the installed Chrome over the DevTools protocol, so there's no Puppeteer to install. Set `CHROME_PATH` to use another Chromium-based browser, or `SKIP_BROWSER=1` to skip it. `tests/helpers/n8n-sandbox.js` runs Code-node scripts and `{{ }}` expressions taken straight from the workflow JSON.
 
 | Test file | What it protects |
 |---|---|
 | `tests/app.test.js` | Input cleaning, validation messages, reading every workflow response |
-| `tests/workflow.test.js` | The workflow export: wiring, every branch answers the webhook, the field contract, loose type checks, agents continuing on error, validators stripping fences, Slack reading from the right node, the HubSpot error branch, response fields |
+| `tests/validators.test.js` | The four validator scripts from the workflow JSON, executed: fences, prose, missing keys, bad enum values, out-of-range confidence, API errors, injected lead fields |
+| `tests/expressions.test.js` | The workflow's expressions, evaluated: Claude request bodies (including quotes and newlines), the Slack message on both CRM paths, the HubSpot fields, the success response, email recipients |
+| `tests/workflow.test.js` | The workflow export: wiring, every branch answers the webhook, the field contract, loose type checks, agents continuing on error, Slack reading from the right node, the HubSpot error branch |
 | `tests/demo-server.test.js` | The demo server answers exactly like the workflow, outages included |
-| `tests/e2e.test.js` | The real page in Chrome: hidden states, validation, success, unknown code, draft restore, crash recovery, AI outage, no JS errors |
+| `tests/e2e.test.js` | The real page in Chrome: hidden states, validation, success, drafts, unknown code, crash, network failure, timeout, AI outage, no JS errors |
+| `tests/integration/workflow.itest.js` | The real workflow on n8n, with Sheets, HubSpot, Slack and Gmail recorded and Claude faked (or real with `LLM_MODE=live`) |
+
+CI runs all of this on every push and pull request (`.github/workflows/test.yml`). When you change the workflow in n8n, export it over `n8n/referral-partner-program.json` and push. The integration test will tell you whether the change broke a critical path.
 
 The demo server mirrors the workflow's contract on purpose. If you change a response in n8n, change `demo/server.js` too, or the tests will stop meaning anything.
 

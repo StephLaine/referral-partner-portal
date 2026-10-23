@@ -1,5 +1,7 @@
 # Referral Partner Portal
 
+[![Tests](https://github.com/StephLaine/referral-partner-portal/actions/workflows/test.yml/badge.svg)](https://github.com/StephLaine/referral-partner-portal/actions/workflows/test.yml)
+
 **Live:** https://referral-partner-portal-smoky.vercel.app
 
 A one-page form where insurance referral partners send a client to the sales team. Behind it, an n8n workflow with four AI agents ranks the referral, files it in HubSpot, alerts sales in Slack and emails both the partner and the client. The partner sees a confirmation with a follow-up tier in seconds.
@@ -64,18 +66,22 @@ npm run demo
 
 Open `http://localhost:8787` for the portal and `http://localhost:8787/feed` for a stand-in for the sales Slack channel. Use partner code `PARTNER001`. The demo server answers exactly like the real workflow, but its agents are **simulated with keyword rules, not Claude**. Press `a` in its terminal to simulate an AI outage, `h` for a HubSpot outage, or `x` to crash the next run.
 
-**Run the tests.**
+**Run the tests.** [TESTING.md](TESTING.md) has the full test report, coverage and how each layer works.
 
 ```bash
-npm test
+npm test               # 111 unit and browser tests, no dependencies (browser tests need Chrome)
+npm run test:n8n       # 10 integration tests: the real workflow on n8n 2.43.8 (npm install -g n8n@2.43.8 first)
+npm run coverage       # writes coverage/REPORT.md
+npm run mutation       # plants 15 known bugs and checks the tests catch each one
 ```
 
-There are 41 tests, all dependency-free, in four layers:
+In CI, GitHub Actions runs all of the above on every push and pull request, including n8n in Docker. See [.github/workflows/test.yml](.github/workflows/test.yml). With an `ANTHROPIC_API_KEY` repository secret, a second job runs the integration test against the real Claude API.
 
-- **Form logic.**
-- **Workflow file.** Each check guards a bug found by running the workflow on real n8n.
-- **Demo server contract.**
-- **Real-browser checks** in headless Chrome. They skip themselves when Chrome isn't installed.
+| Measure | Latest |
+|---|---|
+| Critical-path line coverage | 100% |
+| Workflow branches exercised on real n8n | 17 of 17 |
+| Planted bugs caught | 15 of 15 |
 
 **Connect the real workflow.** Import [n8n/referral-partner-program.json](n8n/referral-partner-program.json) into n8n, connect the credentials and activate it. Then put its production webhook URL in [config.js](config.js). [HANDOFF.md](HANDOFF.md) has the full setup, including the Anthropic credential and the HubSpot properties.
 
@@ -90,6 +96,7 @@ There are 41 tests, all dependency-free, in four layers:
 - **HubSpot merges contacts by email.** Test referrals that reuse one address update one contact.
 - **The consent checkbox is sent but not stored.** The workflow ignores the `consent` field.
 - **The demo server's agents are rules.** They show the flow and the failure handling, not Claude's judgment.
+- **The live-Claude test hasn't run yet.** It needs an `ANTHROPIC_API_KEY` secret. Every other test runs on each push.
 
 ## Next steps
 
